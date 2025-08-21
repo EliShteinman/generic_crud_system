@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: analytics-engine
+  namespace: analytics
+  labels:
+    app: analytics-engine
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: analytics-engine
+  template:
+    metadata:
+      labels:
+        app: analytics-engine
+    spec:
+      containers:
+      - name: analytics-engine
+        image: analytics-engine:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+          protocol: TCP
+        env:
+        - name: MONGODB_URI
+          valueFrom:
+            secretKeyRef:
+              name: analytics-engine-secret
+              key: MONGODB_URI
+        - name: DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              name: analytics-engine-secret
+              key: DATABASE_NAME
+        - name: COLLECTION_NAME
+          valueFrom:
+            secretKeyRef:
+              name: analytics-engine-secret
+              key: COLLECTION_NAME
+        - name: MAX_POOL_SIZE
+          value: "50"
+        - name: MIN_POOL_SIZE
+          value: "10"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /api/v1/
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/v1/health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+      restartPolicy: Always

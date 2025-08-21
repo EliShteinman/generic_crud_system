@@ -1,0 +1,19 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: analytics-api-route
+  # ★ תוויות לזיהוי ה-Route עצמו ★
+  labels:
+    app.kubernetes.io/name: fastapi
+    app.kubernetes.io/instance: analytics-api
+    app.kubernetes.io/part-of: analytics-engine
+spec:
+  to:
+    kind: Service
+    # שם ה-Service שאליו ה-Route מפנה
+    name: analytics-api-service
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect

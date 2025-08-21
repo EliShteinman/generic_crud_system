@@ -1,0 +1,37 @@
+# עבור OpenShift - Route
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: analytics-engine-route
+  namespace: analytics
+spec:
+  to:
+    kind: Service
+    name: analytics-engine-service
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+
+---
+# עבור Kubernetes רגיל - Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: analytics-engine-ingress
+  namespace: analytics
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: analytics.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: analytics-engine-service
+            port:
+              number: 80

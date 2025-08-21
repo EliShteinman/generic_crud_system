@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: analytics-api-service
+  # ★ תוויות לזיהוי ה-Service עצמו ★
+  labels:
+    app.kubernetes.io/name: fastapi
+    app.kubernetes.io/instance: analytics-api
+    app.kubernetes.io/part-of: analytics-engine
+spec:
+  # ★ חלק קריטי: ה-Selector של ה-Service ★
+  # ה-Service יחפש Pods עם התוויות האלה וישלח אליהם תעבורה.
+  # הוא חייב להתאים לתוויות של ה-Pod ב-Deployment.
+  selector:
+    app.kubernetes.io/name: fastapi
+    app.kubernetes.io/instance: analytics-api
+    app.kubernetes.io/part-of: analytics-engine
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080
+  type: ClusterIP

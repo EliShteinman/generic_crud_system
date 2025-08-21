@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: analytics-api-deployment
+  # ★ חלק 1: תוויות ברמת ה-Deployment עצמו לזיהוי וניהול ★
+  labels:
+    app.kubernetes.io/name: fastapi
+    app.kubernetes.io/instance: analytics-api
+    app.kubernetes.io/version: "2.0.0"
+    app.kubernetes.io/component: api
+    app.kubernetes.io/part-of: analytics-engine
+    app.kubernetes.io/managed-by: manual
+spec:
+  replicas: 2
+  # ★ חלק 2: ה-Selector, הלב של החיבור ★
+  # ה-Deployment ישלוט על כל Pod שיש לו את התוויות האלה.
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: fastapi
+      app.kubernetes.io/instance: analytics-api
+      app.kubernetes.io/part-of: analytics-engine
+  template:
+    metadata:
+      # ★ חלק 3: תוויות שיוצמדו לכל Pod שייווצר ★
+      # אלו חייבות להתאים בדיוק ל-matchLabels שלמעלה!
+      labels:
+        app.kubernetes.io/name: fastapi
+        app.kubernetes.io/instance: analytics-api
+        app.kubernetes.io/part-of: analytics-engine
+    spec:
+      containers:
+      - name: analytics-engine-container
+        image: your-image-repository/analytics-engine:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: MONGO_CONNECTION_STRING
+          valueFrom:
+            secretKeyRef:
+              name: analytics-engine-secret
+              key: MONGO_CONNECTION_STRING
+        resources:
+          requests:
+            cpu: "200m"
+            memory: "256Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 20
+          periodSeconds: 10
